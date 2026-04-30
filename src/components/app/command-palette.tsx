@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
   CommandDialog,
   CommandEmpty,
@@ -46,6 +47,7 @@ interface CommandPaletteProps {
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -61,6 +63,12 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   function handleSelect(href: string) {
     onOpenChange(false);
     router.push(href);
+  }
+
+  async function handleSignOut() {
+    onOpenChange(false);
+    await supabase.auth.signOut();
+    router.push("/login");
   }
 
   const groups = [...new Set(pages.map((p) => p.group))];
@@ -95,7 +103,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         ))}
         <CommandSeparator />
         <CommandGroup heading="Account">
-          <CommandItem value="sign out" onSelect={() => handleSelect("/api/auth/signout")} className="text-destructive">
+          <CommandItem value="sign out" onSelect={handleSignOut} className="text-destructive">
             <LogOut className="w-4 h-4 mr-2" />
             Sign out
           </CommandItem>

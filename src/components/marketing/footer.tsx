@@ -4,26 +4,19 @@ import { Activity } from "lucide-react";
 const footerLinks = {
   Product: [
     { label: "Features", href: "/#features" },
-    { label: "Pricing", href: "/pricing" },
+    { label: "Pricing", href: "/#pricing" },
     { label: "Changelog", href: "/changelog" },
-    { label: "Roadmap", href: "/roadmap" },
   ],
   Company: [
     { label: "About", href: "/about" },
-    { label: "Blog", href: "/blog" },
-    { label: "Careers", href: "/careers" },
     { label: "Contact", href: "/contact" },
   ],
   Resources: [
     { label: "Help Center", href: "/help" },
-    { label: "API Docs", href: "/docs" },
-    { label: "Status", href: "/status" },
   ],
   Legal: [
     { label: "Privacy", href: "/privacy" },
     { label: "Terms", href: "/terms" },
-    { label: "Cookies", href: "/cookies" },
-    { label: "Security", href: "/security" },
   ],
 };
 

@@ -21,7 +21,6 @@ export default async function AdminPage() {
       take: 20,
       select: { id: true, email: true, name: true, subscriptionPlan: true, createdAt: true, businessType: true },
     }),
-    db.auditLog.count(),
   ]);
 
   const totalMetrics = await db.metric.count();
