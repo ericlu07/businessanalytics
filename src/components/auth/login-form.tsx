@@ -29,11 +29,12 @@ export function LoginForm({ searchParams }: LoginFormProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    const safeTo = params.from?.startsWith("/") ? params.from : "/dashboard";
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Welcome back!");
-      router.push(params.from ?? "/dashboard");
+      router.push(safeTo);
       router.refresh();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Sign in failed";
@@ -45,10 +46,11 @@ export function LoginForm({ searchParams }: LoginFormProps) {
 
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
+    const safeTo = params.from?.startsWith("/") ? params.from : "/dashboard";
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?from=${params.from ?? "/dashboard"}`,
+        redirectTo: `${window.location.origin}/auth/callback?from=${safeTo}`,
       },
     });
     if (error) {

@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
   const user = await getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json() as unknown;
+  let body: unknown;
+  try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
@@ -74,23 +75,27 @@ export async function POST(req: NextRequest) {
       }
 
       // Create KPI widgets for each metric
-      await Promise.all(
-        createdMetrics.map((metric, i) =>
-          db.widget.create({
-            data: {
-              dashboardId: dashboard!.id,
-              metricId: metric.id,
-              type: "KPI_TILE",
-              title: metric.name,
-              position: i,
-              gridX: (i % 3) * 2,
-              gridY: Math.floor(i / 3),
-              gridW: 2,
-              gridH: 1,
-            },
-          })
-        )
-      );
+      try {
+        await Promise.all(
+          createdMetrics.map((metric, i) =>
+            db.widget.create({
+              data: {
+                dashboardId: dashboard!.id,
+                metricId: metric.id,
+                type: "KPI_TILE",
+                title: metric.name,
+                position: i,
+                gridX: (i % 3) * 2,
+                gridY: Math.floor(i / 3),
+                gridW: 2,
+                gridH: 1,
+              },
+            })
+          )
+        );
+      } catch {
+        // Widgets failed but onboarding is marked complete — user can add widgets later
+      }
     }
   }
 
