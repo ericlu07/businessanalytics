@@ -5,10 +5,10 @@ import { z } from "zod";
 
 const schema = z.object({
   points: z.array(z.object({
-    metricId: z.string(),
+    metricId: z.string().cuid(),
     value: z.number(),
-    recordedAt: z.string(),
-    note: z.string().nullable().optional(),
+    recordedAt: z.string().datetime(),
+    note: z.string().max(1000).nullable().optional(),
   })).max(1000),
 });
 
@@ -31,16 +31,21 @@ export async function POST(req: NextRequest) {
   const validPoints = parsed.data.points.filter((p) => ownedIds.has(p.metricId));
   if (validPoints.length === 0) return NextResponse.json({ error: "No valid metrics found" }, { status: 400 });
 
-  const result = await db.dataPoint.createMany({
-    data: validPoints.map((p) => ({
-      userId: user.id,
-      metricId: p.metricId,
-      value: p.value,
-      recordedAt: new Date(p.recordedAt),
-      note: p.note ?? null,
-    })),
-    skipDuplicates: true,
-  });
+  let result;
+  try {
+    result = await db.dataPoint.createMany({
+      data: validPoints.map((p) => ({
+        userId: user.id,
+        metricId: p.metricId,
+        value: p.value,
+        recordedAt: new Date(p.recordedAt),
+        note: p.note ?? null,
+      })),
+      skipDuplicates: true,
+    });
+  } catch {
+    return NextResponse.json({ error: "Batch insert failed" }, { status: 500 });
+  }
 
   return NextResponse.json({ count: result.count }, { status: 201 });
 }

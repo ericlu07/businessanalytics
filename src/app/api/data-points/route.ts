@@ -22,16 +22,21 @@ export async function POST(req: NextRequest) {
   const metric = await db.metric.findFirst({ where: { id: parsed.data.metricId, userId: user.id } });
   if (!metric) return NextResponse.json({ error: "Metric not found" }, { status: 404 });
 
-  const point = await db.dataPoint.create({
-    data: {
-      userId: user.id,
-      metricId: parsed.data.metricId,
-      value: parsed.data.value,
-      note: parsed.data.note ?? null,
-      recordedAt: parsed.data.recordedAt ? new Date(parsed.data.recordedAt) : new Date(),
-    },
-    include: { metric: true },
-  });
+  let point;
+  try {
+    point = await db.dataPoint.create({
+      data: {
+        userId: user.id,
+        metricId: parsed.data.metricId,
+        value: parsed.data.value,
+        note: parsed.data.note ?? null,
+        recordedAt: parsed.data.recordedAt ? new Date(parsed.data.recordedAt) : new Date(),
+      },
+      include: { metric: true },
+    });
+  } catch {
+    return NextResponse.json({ error: "Failed to create data point" }, { status: 500 });
+  }
 
   return NextResponse.json(point, { status: 201 });
 }

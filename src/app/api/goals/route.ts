@@ -7,7 +7,7 @@ const createGoalSchema = z.object({
   title: z.string().min(1).max(200),
   metricId: z.string().cuid(),
   targetValue: z.number().positive(),
-  deadline: z.string().nullable().optional(),
+  deadline: z.string().datetime().nullable().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -25,15 +25,20 @@ export async function POST(req: NextRequest) {
   const metric = await db.metric.findFirst({ where: { id: metricId, userId: user.id } });
   if (!metric) return NextResponse.json({ error: "Metric not found" }, { status: 404 });
 
-  const goal = await db.goal.create({
-    data: {
-      userId: user.id,
-      title,
-      metricId,
-      targetValue,
-      deadline: deadline ? new Date(deadline) : null,
-    },
-  });
+  let goal;
+  try {
+    goal = await db.goal.create({
+      data: {
+        userId: user.id,
+        title,
+        metricId,
+        targetValue,
+        deadline: deadline ? new Date(deadline) : null,
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "Failed to create goal" }, { status: 500 });
+  }
 
   return NextResponse.json(goal, { status: 201 });
 }

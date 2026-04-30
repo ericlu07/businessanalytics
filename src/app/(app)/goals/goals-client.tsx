@@ -50,6 +50,7 @@ export function GoalsClient({ goals, metrics, latestData }: GoalsClientProps) {
   const completedGoals = goals.filter((g) => g.status === "COMPLETED");
 
   function getPct(goal: Goal) {
+    if (goal.targetValue === 0) return 0;
     const current = latestData[goal.metricId] ?? 0;
     return Math.min((current / goal.targetValue) * 100, 100);
   }

@@ -5,12 +5,12 @@ import { z } from "zod";
 
 const createMetricSchema = z.object({
   name: z.string().min(1).max(100),
-  description: z.string().optional(),
-  category: z.string().optional(),
-  builtInKey: z.string().optional(),
-  prefix: z.string().nullable().optional(),
-  unit: z.string().nullable().optional(),
-  icon: z.string().optional(),
+  description: z.string().max(1000).optional(),
+  category: z.string().max(50).optional(),
+  builtInKey: z.string().max(100).optional(),
+  prefix: z.string().max(20).nullable().optional(),
+  unit: z.string().max(50).nullable().optional(),
+  icon: z.string().max(200).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -48,16 +48,20 @@ export async function POST(req: NextRequest) {
     where: { userId: user.id, isDefault: true },
   });
   if (dashboard) {
-    const widgetCount = await db.widget.count({ where: { dashboardId: dashboard.id } });
-    await db.widget.create({
-      data: {
-        dashboardId: dashboard.id,
-        metricId: metric.id,
-        type: "KPI_TILE",
-        title: metric.name,
-        position: widgetCount,
-      },
-    });
+    try {
+      const widgetCount = await db.widget.count({ where: { dashboardId: dashboard.id } });
+      await db.widget.create({
+        data: {
+          dashboardId: dashboard.id,
+          metricId: metric.id,
+          type: "KPI_TILE",
+          title: metric.name,
+          position: widgetCount,
+        },
+      });
+    } catch {
+      // Widget creation failure is non-fatal; metric was created successfully
+    }
   }
 
   return NextResponse.json(metric, { status: 201 });

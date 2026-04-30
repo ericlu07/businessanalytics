@@ -84,6 +84,7 @@ export function TimeTrackerClient({ entries, runningEntry }: TimeTrackerClientPr
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ projectName: project, clientName: client || null, hourlyRate: rate ? parseFloat(rate) : null }),
       });
+      if (!res.ok) throw new Error("Failed to start timer");
       const data = await res.json() as TimeEntry;
       setRunning(data);
       setElapsed(0);
@@ -97,6 +98,7 @@ export function TimeTrackerClient({ entries, runningEntry }: TimeTrackerClientPr
     setLoading(true);
     try {
       const res = await fetch(`/api/time/${running.id}`, { method: "PATCH" });
+      if (!res.ok) throw new Error("Failed to stop timer");
       const data = await res.json() as TimeEntry;
       setRunning(null);
       setAllEntries((prev) => [data, ...prev.filter((e) => e.id !== data.id)]);

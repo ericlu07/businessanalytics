@@ -29,7 +29,7 @@ export function LoginForm({ searchParams }: LoginFormProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const safeTo = params.from?.startsWith("/") ? params.from : "/dashboard";
+    const safeTo = params.from?.startsWith("/") && !params.from.startsWith("//") ? params.from : "/dashboard";
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -46,7 +46,7 @@ export function LoginForm({ searchParams }: LoginFormProps) {
 
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
-    const safeTo = params.from?.startsWith("/") ? params.from : "/dashboard";
+    const safeTo = params.from?.startsWith("/") && !params.from.startsWith("//") ? params.from : "/dashboard";
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {

@@ -20,16 +20,21 @@ export async function PATCH(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const updated = await db.user.update({
-    where: { id: user.id },
-    data: {
-      name: parsed.data.name,
-      businessName: parsed.data.businessName,
-      businessType: parsed.data.businessType as "FREELANCER" | "SIDE_HUSTLE" | "ECOMMERCE" | "SERVICE_BUSINESS" | "SAAS" | "CREATOR" | "CUSTOM" | null | undefined,
-      currency: parsed.data.currency,
-      timezone: parsed.data.timezone,
-    },
-  });
+  let updated;
+  try {
+    updated = await db.user.update({
+      where: { id: user.id },
+      data: {
+        name: parsed.data.name,
+        businessName: parsed.data.businessName,
+        businessType: parsed.data.businessType as "FREELANCER" | "SIDE_HUSTLE" | "ECOMMERCE" | "SERVICE_BUSINESS" | "SAAS" | "CREATOR" | "CUSTOM" | null | undefined,
+        currency: parsed.data.currency,
+        timezone: parsed.data.timezone,
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+  }
 
   return NextResponse.json(updated);
 }

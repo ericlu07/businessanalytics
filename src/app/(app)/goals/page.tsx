@@ -20,15 +20,19 @@ export default async function GoalsPage() {
     orderBy: { name: "asc" },
   });
 
-  // Latest value per metric for progress
+  // Latest value per metric for progress — single query instead of N+1
   const metricIds = [...new Set(goals.map((g) => g.metricId))];
   const latestData: Record<string, number> = {};
-  for (const mId of metricIds) {
-    const latest = await db.dataPoint.findFirst({
-      where: { metricId: mId, userId: profile.id },
+  if (metricIds.length > 0) {
+    const recentPoints = await db.dataPoint.findMany({
+      where: { metricId: { in: metricIds }, userId: profile.id },
       orderBy: { recordedAt: "desc" },
+      distinct: ["metricId"],
+      select: { metricId: true, value: true },
     });
-    if (latest) latestData[mId] = latest.value;
+    for (const p of recentPoints) {
+      latestData[p.metricId] = p.value;
+    }
   }
 
   return (
