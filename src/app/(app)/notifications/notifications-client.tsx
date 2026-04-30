@@ -44,8 +44,11 @@ export function NotificationsClient({ notifications }: NotificationsClientProps)
   }
 
   async function markRead(id: string) {
-    await fetch(`/api/notifications/${id}/read`, { method: "POST" });
-    setItems((prev) => prev.map((n) => n.id === id ? { ...n, readAt: new Date().toISOString() } : n));
+    try {
+      const res = await fetch(`/api/notifications/${id}/read`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      setItems((prev) => prev.map((n) => n.id === id ? { ...n, readAt: new Date().toISOString() } : n));
+    } catch { toast.error("Failed to mark as read"); }
   }
 
   if (items.length === 0) {

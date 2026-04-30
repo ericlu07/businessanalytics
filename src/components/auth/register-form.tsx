@@ -53,7 +53,7 @@ export function RegisterForm() {
         password,
         options: {
           data: { name },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?from=/onboarding`,
         },
       });
       if (error) throw error;
@@ -69,7 +69,7 @@ export function RegisterForm() {
   async function handleGoogleSignUp() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?from=/onboarding` },
     });
     if (error) toast.error(error.message);
   }

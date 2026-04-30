@@ -33,7 +33,7 @@ export function GoalProgressWidget({
     );
   }
 
-  const pct = Math.min((current / target) * 100, 100);
+  const pct = target > 0 ? Math.min((current / target) * 100, 100) : 0;
   const completed = pct >= 100;
   const fmt = (v: number) => `${prefix}${v.toLocaleString()}${suffix}`;
 

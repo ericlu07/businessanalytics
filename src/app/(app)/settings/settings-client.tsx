@@ -57,9 +57,9 @@ export function SettingsClient({ profile }: { profile: Profile }) {
 
   async function handleSaveNotifs() {
     setSavingNotifs(true);
-    await new Promise((r) => setTimeout(r, 400));
+    await new Promise((r) => setTimeout(r, 300));
     setSavingNotifs(false);
-    toast.success("Notification preferences saved!");
+    toast.info("Notification preferences coming soon!");
   }
 
   const planColors: Record<string, string> = {

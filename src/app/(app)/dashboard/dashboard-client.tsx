@@ -238,8 +238,8 @@ export function DashboardClient({ dashboard, recentData, goals, userName }: Dash
                       title={goal.title}
                       current={current}
                       target={goal.targetValue}
-                      prefix={goal.metric.prefix ?? ""}
-                      suffix={goal.metric.unit ? ` ${goal.metric.unit}` : ""}
+                      prefix={goal.metric?.prefix ?? ""}
+                      suffix={goal.metric?.unit ? ` ${goal.metric.unit}` : ""}
                     />
                   );
                 })}

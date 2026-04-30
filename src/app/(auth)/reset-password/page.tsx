@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Activity, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,25 @@ export default function ResetPasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [exchanging, setExchanging] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  // Supabase sends a PKCE code — exchange it for a session before allowing password update
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (!code) {
+      setExchanging(false);
+      return;
+    }
+    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+      if (error) setError("Invalid or expired reset link. Please request a new one.");
+      setExchanging(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,6 +74,12 @@ export default function ResetPasswordPage() {
             Choose a strong password for your account.
           </p>
         </div>
+
+        {exchanging ? (
+          <p className="text-center text-sm text-muted-foreground">Verifying reset link…</p>
+        ) : error && !password ? (
+          <p className="text-sm text-destructive text-center">{error}</p>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">

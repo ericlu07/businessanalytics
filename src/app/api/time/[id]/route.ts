@@ -10,13 +10,13 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const entry = await db.timeEntry.findFirst({ where: { id, userId: user.id } });
-  if (!entry) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const updated = await db.timeEntry.update({
-    where: { id },
-    data: { status: "STOPPED", stoppedAt: new Date() },
-  });
-
-  return NextResponse.json(updated);
+  try {
+    const updated = await db.timeEntry.update({
+      where: { id, userId: user.id },
+      data: { status: "STOPPED", stoppedAt: new Date() },
+    });
+    return NextResponse.json(updated);
+  } catch {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 }
