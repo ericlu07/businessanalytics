@@ -55,10 +55,7 @@ export function SettingsClient({ profile }: { profile: Profile }) {
     finally { setSaving(false); }
   }
 
-  async function handleSaveNotifs() {
-    setSavingNotifs(true);
-    await new Promise((r) => setTimeout(r, 300));
-    setSavingNotifs(false);
+  function handleSaveNotifs() {
     toast.info("Notification preferences coming soon!");
   }
 

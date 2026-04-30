@@ -14,6 +14,10 @@ export async function POST(req: NextRequest) {
   const user = await getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Idempotency guard — prevent duplicate metric creation if called twice
+  const existing = await db.user.findFirst({ where: { id: user.id, onboardingComplete: true } });
+  if (existing) return NextResponse.json({ success: true });
+
   let body: unknown;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   const parsed = schema.safeParse(body);
