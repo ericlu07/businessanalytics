@@ -1,0 +1,323 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum SubscriptionPlan {
+  FREE
+  SOLO
+  PRO
+  TEAM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  INCOMPLETE
+}
+
+enum BusinessType {
+  FREELANCER
+  SIDE_HUSTLE
+  ECOMMERCE
+  SERVICE_BUSINESS
+  SAAS
+  CREATOR
+  CUSTOM
+}
+
+enum MetricCategory {
+  FINANCIAL
+  SALES
+  MARKETING
+  OPERATIONS
+  TIME
+  GROWTH
+  CUSTOMER
+  CUSTOM
+}
+
+enum WidgetType {
+  KPI_TILE
+  LINE_CHART
+  BAR_CHART
+  DONUT_CHART
+  GOAL_PROGRESS
+  SPARKLINE
+  TABLE
+  TEXT_NOTE
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
+
+enum TimeEntryStatus {
+  RUNNING
+  STOPPED
+}
+
+enum NotificationType {
+  GOAL_REACHED
+  GOAL_MILESTONE
+  METRIC_ALERT
+  WEEKLY_DIGEST
+  SYSTEM
+}
+
+model User {
+  id                 String             @id @default(cuid())
+  email              String             @unique
+  name               String?
+  avatarUrl          String?
+  role               UserRole           @default(USER)
+  businessType       BusinessType?
+  businessName       String?
+  currency           String             @default("USD")
+  timezone           String             @default("America/New_York")
+  fiscalYearStart    Int                @default(1)
+  onboardingComplete Boolean            @default(false)
+  stripeCustomerId   String?            @unique
+  subscriptionId     String?
+  subscriptionPlan   SubscriptionPlan   @default(FREE)
+  subscriptionStatus SubscriptionStatus?
+  trialEndsAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+
+  dashboards         Dashboard[]
+  metrics            Metric[]
+  dataPoints         DataPoint[]
+  goals              Goal[]
+  timeEntries        TimeEntry[]
+  notifications      Notification[]
+  reports            Report[]
+  auditLogs          AuditLog[]
+  integrations       Integration[]
+
+  @@index([email])
+  @@index([stripeCustomerId])
+}
+
+model Dashboard {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  isDefault   Boolean  @default(false)
+  layout      Json     @default("[]")
+  theme       String   @default("default")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  widgets Widget[]
+
+  @@index([userId])
+}
+
+model Widget {
+  id          String     @id @default(cuid())
+  dashboardId String
+  metricId    String?
+  type        WidgetType
+  title       String
+  config      Json       @default("{}")
+  position    Int        @default(0)
+  gridX       Int        @default(0)
+  gridY       Int        @default(0)
+  gridW       Int        @default(2)
+  gridH       Int        @default(1)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  dashboard Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  metric    Metric?   @relation(fields: [metricId], references: [id], onDelete: SetNull)
+
+  @@index([dashboardId])
+  @@index([metricId])
+}
+
+model Metric {
+  id          String         @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  category    MetricCategory @default(CUSTOM)
+  unit        String?
+  prefix      String?
+  formula     Json?
+  isBuiltIn   Boolean        @default(false)
+  builtInKey  String?
+  color       String?
+  icon        String?
+  targetValue Float?
+  alertLow    Float?
+  alertHigh   Float?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dataPoints DataPoint[]
+  widgets    Widget[]
+  goals      Goal[]
+
+  @@index([userId])
+  @@index([builtInKey])
+}
+
+model DataPoint {
+  id        String   @id @default(cuid())
+  userId    String
+  metricId  String
+  value     Float
+  note      String?
+  source    String?
+  recordedAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metric Metric @relation(fields: [metricId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([metricId])
+  @@index([recordedAt])
+  @@index([metricId, recordedAt])
+}
+
+model Goal {
+  id          String     @id @default(cuid())
+  userId      String
+  metricId    String
+  title       String
+  targetValue Float
+  startValue  Float?
+  deadline    DateTime?
+  status      GoalStatus @default(ACTIVE)
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metric Metric @relation(fields: [metricId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([metricId])
+}
+
+model TimeEntry {
+  id          String          @id @default(cuid())
+  userId      String
+  projectName String
+  clientName  String?
+  description String?
+  hourlyRate  Float?
+  startedAt   DateTime
+  stoppedAt   DateTime?
+  status      TimeEntryStatus @default(STOPPED)
+  tags        String[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([startedAt])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  type      String
+  config    Json     @default("{}")
+  data      Json?
+  shareToken String? @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([readAt])
+}
+
+model Integration {
+  id           String    @id @default(cuid())
+  userId       String
+  provider     String
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  metadata     Json      @default("{}")
+  isActive     Boolean   @default(true)
+  lastSyncAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entity     String
+  entityId   String?
+  metadata   Json     @default("{}")
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  subject   String
+  body      String
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+}
