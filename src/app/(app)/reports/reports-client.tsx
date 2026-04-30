@@ -146,11 +146,11 @@ export function ReportsClient({ reports, metrics }: ReportsClientProps) {
                   {format(new Date(report.createdAt), "MMM d, yyyy")}
                 </span>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs">
+                  <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => toast.info("PDF export coming soon")}>
                     <Download className="w-3 h-3" />
                     PDF
                   </Button>
-                  <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs">
+                  <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => toast.info("Share link coming soon")}>
                     <Share2 className="w-3 h-3" />
                     Share
                   </Button>

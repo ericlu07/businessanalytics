@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, Upload, History, Trash2 } from "lucide-react";
+import { PlusCircle, Upload, History } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ interface LogClientProps {
 }
 
 export function LogClient({ metrics, recentPoints }: LogClientProps) {
+  const router = useRouter();
   const [metricId, setMetricId] = useState("");
   const [value, setValue] = useState("");
   const [note, setNote] = useState("");
@@ -89,7 +91,7 @@ export function LogClient({ metrics, recentPoints }: LogClientProps) {
       if (!res.ok) throw new Error("Failed to import");
       toast.success(`Imported ${points.length} data points!`);
       setCsvText("");
-      window.location.reload();
+      router.refresh();
     } catch { toast.error("Import failed. Check your CSV format."); }
     finally { setCsvLoading(false); }
   }

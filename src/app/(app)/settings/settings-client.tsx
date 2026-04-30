@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { User, CreditCard, Bell, Shield, Plug } from "lucide-react";
+import { User, CreditCard, Bell, Plug } from "lucide-react";
 import { BUSINESS_TEMPLATES } from "@/lib/metrics/templates";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD", "NZD", "JPY", "CHF", "INR", "BRL"];
@@ -34,6 +35,12 @@ export function SettingsClient({ profile }: { profile: Profile }) {
   const [timezone, setTimezone] = useState(profile.timezone);
   const [saving, setSaving] = useState(false);
 
+  const [notifWeeklyDigest, setNotifWeeklyDigest] = useState(true);
+  const [notifGoalAlerts, setNotifGoalAlerts] = useState(true);
+  const [notifAnomalyAlerts, setNotifAnomalyAlerts] = useState(false);
+  const [notifMonthlySummary, setNotifMonthlySummary] = useState(true);
+  const [savingNotifs, setSavingNotifs] = useState(false);
+
   async function handleSave() {
     setSaving(true);
     try {
@@ -46,6 +53,13 @@ export function SettingsClient({ profile }: { profile: Profile }) {
       toast.success("Settings saved!");
     } catch { toast.error("Failed to save settings"); }
     finally { setSaving(false); }
+  }
+
+  async function handleSaveNotifs() {
+    setSavingNotifs(true);
+    await new Promise((r) => setTimeout(r, 400));
+    setSavingNotifs(false);
+    toast.success("Notification preferences saved!");
   }
 
   const planColors: Record<string, string> = {
@@ -150,27 +164,14 @@ export function SettingsClient({ profile }: { profile: Profile }) {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
             <div>
               <h2 className="font-heading font-600 text-base mb-4">Current plan</h2>
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-4">
                 <Badge className={planColors[profile.subscriptionPlan] ?? planColors["FREE"]}>
                   {profile.subscriptionPlan}
                 </Badge>
-                <span className="text-sm text-muted-foreground">
-                  {profile.subscriptionPlan === "FREE" ? "Free plan — upgrade to unlock more features" : "Active subscription"}
-                </span>
+                <span className="text-sm text-muted-foreground">Free plan — all features included during beta</span>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  { plan: "Solo", price: "$12/mo", features: "Unlimited widgets, goals, reports" },
-                  { plan: "Pro", price: "$29/mo", features: "Everything + integrations, team sharing" },
-                  { plan: "Team", price: "$59/mo", features: "Up to 10 users, admin dashboard" },
-                ].map((p) => (
-                  <div key={p.plan} className="border border-border rounded-xl p-4">
-                    <p className="font-heading font-600 text-sm mb-1">{p.plan}</p>
-                    <p className="font-heading font-700 text-lg mb-2">{p.price}</p>
-                    <p className="text-xs text-muted-foreground mb-3">{p.features}</p>
-                    <Button size="sm" variant="outline" className="w-full text-xs">Upgrade</Button>
-                  </div>
-                ))}
+              <div className="bg-muted/50 border border-border rounded-xl p-4 text-sm text-muted-foreground">
+                Pulse is free during beta. Paid plans will be introduced later with advance notice.
               </div>
             </div>
           </div>
@@ -181,23 +182,18 @@ export function SettingsClient({ profile }: { profile: Profile }) {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <h2 className="font-heading font-600 text-base mb-4">Integrations</h2>
             {[
-              { name: "Stripe", desc: "Auto-sync revenue, MRR, and customer data", status: "available" },
-              { name: "PayPal", desc: "Auto-sync PayPal transaction data", status: "available" },
-              { name: "Google Sheets", desc: "Two-way sync with your spreadsheets", status: "coming_soon" },
-              { name: "Shopify", desc: "Sync orders, revenue, and products", status: "coming_soon" },
+              { name: "Stripe", desc: "Auto-sync revenue, MRR, and customer data" },
+              { name: "PayPal", desc: "Auto-sync PayPal transaction data" },
+              { name: "Google Sheets", desc: "Two-way sync with your spreadsheets" },
+              { name: "Shopify", desc: "Sync orders, revenue, and products" },
             ].map((integration) => (
               <div key={integration.name} className="flex items-center justify-between py-3 border-b border-border last:border-0">
                 <div>
                   <p className="font-medium text-sm">{integration.name}</p>
                   <p className="text-xs text-muted-foreground">{integration.desc}</p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={integration.status === "coming_soon"}
-                  className="text-xs shrink-0"
-                >
-                  {integration.status === "coming_soon" ? "Coming soon" : "Connect"}
+                <Button size="sm" variant="outline" disabled className="text-xs shrink-0">
+                  Coming soon
                 </Button>
               </div>
             ))}
@@ -206,26 +202,30 @@ export function SettingsClient({ profile }: { profile: Profile }) {
 
         {/* Notifications tab */}
         <TabsContent value="notifications">
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <h2 className="font-heading font-600 text-base mb-4">Email notifications</h2>
-            <div className="space-y-4">
-              {[
-                { label: "Weekly business digest", desc: "Monday morning summary of your key metrics", enabled: true },
-                { label: "Goal milestone alerts", desc: "When you hit 50%, 75%, and 100% of a goal", enabled: true },
-                { label: "Metric anomaly alerts", desc: "When a metric drops or spikes significantly", enabled: false },
-                { label: "Monthly summary", desc: "End-of-month report with trends", enabled: true },
-              ].map((n) => (
-                <div key={n.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <div>
-                    <p className="text-sm font-medium">{n.label}</p>
-                    <p className="text-xs text-muted-foreground">{n.desc}</p>
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+            <div>
+              <h2 className="font-heading font-600 text-base mb-1">Email notifications</h2>
+              <p className="text-xs text-muted-foreground mb-4">Email delivery will activate once an email provider is connected.</p>
+              <div className="space-y-4">
+                {([
+                  { label: "Weekly business digest", desc: "Monday morning summary of your key metrics", value: notifWeeklyDigest, set: setNotifWeeklyDigest },
+                  { label: "Goal milestone alerts", desc: "When you hit 50%, 75%, and 100% of a goal", value: notifGoalAlerts, set: setNotifGoalAlerts },
+                  { label: "Metric anomaly alerts", desc: "When a metric drops or spikes significantly", value: notifAnomalyAlerts, set: setNotifAnomalyAlerts },
+                  { label: "Monthly summary", desc: "End-of-month report with trends", value: notifMonthlySummary, set: setNotifMonthlySummary },
+                ] as const).map((n) => (
+                  <div key={n.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                    <div>
+                      <p className="text-sm font-medium">{n.label}</p>
+                      <p className="text-xs text-muted-foreground">{n.desc}</p>
+                    </div>
+                    <Switch checked={n.value} onCheckedChange={n.set} />
                   </div>
-                  <div className={`w-10 h-5 rounded-full transition-colors ${n.enabled ? "bg-primary" : "bg-muted"} relative`}>
-                    <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${n.enabled ? "translate-x-5 left-0.5" : "left-0.5"}`} />
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+            <Button onClick={handleSaveNotifs} disabled={savingNotifs}>
+              {savingNotifs ? "Saving..." : "Save preferences"}
+            </Button>
           </div>
         </TabsContent>
       </Tabs>

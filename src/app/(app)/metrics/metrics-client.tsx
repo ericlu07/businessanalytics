@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ interface MetricsClientProps {
 }
 
 export function MetricsClient({ builtInMetrics, userMetrics, categoryLabels, businessType }: MetricsClientProps) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [adding, setAdding] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export function MetricsClient({ builtInMetrics, userMetrics, categoryLabels, bus
       if (!res.ok) throw new Error("Failed to add metric");
       toast.success(`${metric.name} added to your metrics!`);
       addedKeys.add(metric.key);
-      window.location.reload();
+      router.refresh();
     } catch {
       toast.error("Failed to add metric");
     } finally {

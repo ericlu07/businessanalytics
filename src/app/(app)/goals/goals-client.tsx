@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Target, PlusCircle, CheckCircle2, Clock, TrendingUp, Trash2 } from "lucide-react";
+import { Target, PlusCircle, CheckCircle2, Clock, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -37,6 +38,7 @@ interface GoalsClientProps {
 }
 
 export function GoalsClient({ goals, metrics, latestData }: GoalsClientProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [title, setTitle] = useState("");
@@ -71,7 +73,7 @@ export function GoalsClient({ goals, metrics, latestData }: GoalsClientProps) {
       setMetricId("");
       setTarget("");
       setDeadline("");
-      window.location.reload();
+      router.refresh();
     } catch {
       toast.error("Failed to create goal");
     } finally {
