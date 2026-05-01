@@ -29,10 +29,14 @@ function isPublicPath(pathname: string) {
 }
 
 export async function proxy(request: NextRequest) {
-  // Skip auth entirely if Supabase isn't configured yet
+  // Demo mode or unconfigured Supabase — skip all auth checks
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseKey || supabaseUrl.includes("placeholder")) {
+  if (
+    process.env.DEMO_MODE === "true" ||
+    !supabaseUrl || !supabaseKey ||
+    supabaseUrl.includes("placeholder")
+  ) {
     return NextResponse.next({ request });
   }
 
